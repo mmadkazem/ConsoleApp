@@ -1,3 +1,5 @@
+using Microsoft.EntityFrameworkCore;
+
 namespace ConsoleApp.Services;
 
 
@@ -7,24 +9,32 @@ public class CategoryService
 
     public ResultDto Create(int parentCategoryId, string name)
     {
-        var parentCategory = Get(parentCategoryId).Value;
-
         var category = new Category
         {
             Name = name,
-            ParentCategory = parentCategory
         };
+
+        var result = Get(parentCategoryId);
+        if (result.IsSuccess)
+        {
+            category.ParentCategory = result.Value;
+        }
+
         _context.Categories.Add(category);
         _context.SaveChanges();
-        return new ResultDto { Message = "Category Created" , IsSuccess = true };
+        return new ResultDto { Message = "Category Created", IsSuccess = true };
     }
 
     public ResultDto Update(int id, string name)
     {
-        var category = Get(id).Value;
-        category.Name = name;
+        var result = Get(id);
+        if (!result.IsSuccess)
+        {
+            return result;
+        }
+        result.Value.Name = name;
 
-        _context.Categories.Update(category);
+        _context.Categories.Update(result.Value);
         _context.SaveChanges();
 
         return new ResultDto { Message = "Product updated", IsSuccess = true };
@@ -32,22 +42,33 @@ public class CategoryService
 
     public ResultDto Remove(int id)
     {
-        var product = Get(id).Value;
+        try
+        {
+            var result = Get(id);
+            if (!result.IsSuccess)
+            {
+                return result;
+            }
 
-        _context.Categories.Remove(product);
-        _context.SaveChanges();
+            _context.Categories.Remove(result.Value);
+            _context.SaveChanges();
 
-        return new ResultDto { Message = "Product removed", IsSuccess = true };
+            return new ResultDto { Message = "Product removed", IsSuccess = true };
+        }
+        catch
+        {
+            return new ResultDto { IsSuccess = false, Message = "category is Parent category." };
+        }
     }
 
-    public ResultDto<Category> Get(int id)
+    private ResultDto<Category> Get(int id)
     {
         var category = _context.Categories.Where(p => p.Id == id).FirstOrDefault();
         if (category is null)
         {
             return new ResultDto<Category>
             {
-                Message = "This product not exist!",
+                Message = "This category does not exist!",
                 IsSuccess = false
             };
         }
@@ -61,7 +82,7 @@ public class CategoryService
         {
             return new ResultsDto<Category>
             {
-                Message = "This product not exist!",
+                Message = "categories does not exist!",
                 IsSuccess = false
             };
         }

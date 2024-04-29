@@ -11,7 +11,7 @@ public class ProductService
         var category = _context.Categories.Find(model.CategoryId);
         if (category is null)
         {
-            return new ResultDto { Message = "This category not found!", IsSuccess = false};
+            return new ResultDto { Message = "This category not found!", IsSuccess = false };
         }
 
         var product = new Product()
@@ -22,29 +22,43 @@ public class ProductService
         };
         _context.Products.Add(product);
         _context.SaveChanges();
-        return new ResultDto { Message = "Product Created" , IsSuccess = true };
+        return new ResultDto { Message = "Product Created", IsSuccess = true };
     }
 
     public ResultDto Update(int id, ProductDto model)
     {
-        var product = Get(id).Value;
-        product.Name = model.Name;
-        product.Inventory = model.Inventory;
+        var result = Get(id);
+        if (!result.IsSuccess)
+        {
+            return result;
+        }
+        var category = _context.Categories.Find(model.CategoryId);
+        if (category is null)
+        {
+            return new ResultDto { IsSuccess = false, Message = "Category does not exist." };
+        }
+        result.Value.Name = model.Name;
+        result.Value.Inventory = model.Inventory;
+        result.Value.Category = category;
 
-        _context.Products.Update(product);
+        _context.Products.Update(result.Value);
         _context.SaveChanges();
 
-        return new ResultDto { Message = "Product updated" , IsSuccess = true};
+        return new ResultDto { Message = "Product updated", IsSuccess = true };
     }
 
     public ResultDto Remove(int id)
     {
-        var product = Get(id).Value;
+        var result = Get(id);
+        if (!result.IsSuccess)
+        {
+            return result;
+        }
 
-        _context.Products.Remove(product);
+        _context.Products.Remove(result.Value);
         _context.SaveChanges();
 
-        return new ResultDto { Message = "Product removed", IsSuccess = true};
+        return new ResultDto { Message = "Product removed", IsSuccess = true };
     }
 
     public ResultDto<Product> SearchByName(string name)
@@ -61,7 +75,7 @@ public class ProductService
         var product = _context.Products.Where(p => p.Id == id).FirstOrDefault();
         if (product is null)
         {
-            return new ResultDto<Product> { Message = "This product not exist!", IsSuccess = false };
+            return new ResultDto<Product> { Message = "This product does not exist!", IsSuccess = false };
         }
         return new ResultDto<Product> { Value = product, IsSuccess = true };
     }
@@ -71,7 +85,7 @@ public class ProductService
         var products = _context.Products.Include(p => p.Category).ToList();
         if (products.Count == 0)
         {
-            return new ResultsDto<Product> { Message = "This product not exist!", IsSuccess = false };
+            return new ResultsDto<Product> { Message = "products does not exist!", IsSuccess = false };
         }
         return new ResultsDto<Product> { Value = products, IsSuccess = true };
     }
@@ -81,7 +95,7 @@ public class ProductService
         var products = _context.Products.ToList();
         if (products.Count == 0)
         {
-            return new ResultsDto<Product> { Message = "This product not exist!", IsSuccess = false };
+            return new ResultsDto<Product> { Message = "product does not exist!", IsSuccess = false };
         }
 
         return new ResultsDto<Product> { Value = products, IsSuccess = true };
@@ -90,14 +104,13 @@ public class ProductService
     public ResultDto AddInventory(int id, int inventory)
     {
         var result = Get(id);
-        var product = result.Value;
-        if (product is null)
+        if (!result.IsSuccess)
         {
-            return new ResultDto { Message = result.Message, IsSuccess = false };
+            return result;
         }
 
-        product.Inventory += inventory;
-        _context.Products.Update(product);
+        result.Value.Inventory += inventory;
+        _context.Products.Update(result.Value);
         _context.SaveChanges();
         return new ResultDto { Message = $"{inventory} Inventory added", IsSuccess = true };
     }
@@ -105,23 +118,21 @@ public class ProductService
     public ResultDto LowInventory(int id, int inventory)
     {
         var result = Get(id);
-        var product = result.Value;
-        if (product is null)
+        if (!result.IsSuccess)
         {
-            return new ResultDto { Message = result.Message, IsSuccess = false };
+            return result;
         }
-        if (product.Inventory - inventory <= 0)
+        if (result.Value.Inventory - inventory <= 0)
         {
             return new ResultDto { Message = "This amount is not in stock", IsSuccess = false };
         }
 
-        product.Inventory += inventory;
-        _context.Products.Update(product);
+        result.Value.Inventory += inventory;
+        _context.Products.Update(result.Value);
         _context.SaveChanges();
 
         return new ResultDto { Message = $"{inventory} added in Inventory", IsSuccess = true };
     }
 
 }
-
 public record ProductDto(string Name, int Inventory, int CategoryId);

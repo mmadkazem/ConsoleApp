@@ -81,4 +81,15 @@ public class Menu
         Console.SetCursorPosition(7, 7);
         Console.Write("Id: ");
     }
+
+    public static void PrintMessage(string message)
+    {
+        Console.SetCursorPosition(5, 7);
+        Console.Write(message);
+    }
+    public static void PresEnterToBack()
+    {
+        Console.Write("\n\n\n------pres Enter to back------");
+        Console.ReadKey();
+    }
 }

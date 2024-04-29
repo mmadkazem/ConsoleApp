@@ -1,10 +1,8 @@
 namespace ConsoleApp;
 
 // واسه زمانی که می خواهیم یدونه خروجی داشته باشیم
-public class ResultDto<T>
+public class ResultDto<T> : ResultDto
 {
-    public bool IsSuccess { get; set; }
-    public string Message { get; set; }
     public T Value { get; set; }
     public override string ToString()
     {

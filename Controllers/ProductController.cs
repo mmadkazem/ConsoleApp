@@ -1,4 +1,3 @@
-
 namespace ConsoleApp.Controllers;
 
 public class ProductController
@@ -10,30 +9,33 @@ public class ProductController
             Menu.productMenu();
             int ch = int.Parse(Console.ReadLine());
             Console.Clear();
-            var _service = new ProductService();
             switch (ch)
             {
                 case 1:
-                    Create(_service);
-                    Thread.Sleep(2000);
+                    Create();
+                    Menu.PresEnterToBack();
                     break;
 
                 case 2:
-                    GetAll(_service);
-                    Console.ReadKey();
+                    GetAll();
+                    Menu.PresEnterToBack();
                     break;
+
                 case 3:
-                    SearchByName(_service);
-                    Console.ReadKey();
+                    SearchByName();
+                    Menu.PresEnterToBack();
                     break;
+
                 case 4:
-                    Update(_service);
-                    Thread.Sleep(2000);
+                    Update();
+                    Menu.PresEnterToBack();
                     break;
+
                 case 5:
-                    Remove(_service);
-                    Thread.Sleep(2000);
+                    Remove();
+                    Menu.PresEnterToBack();
                     break;
+
                 default:
                     break;
             }
@@ -46,59 +48,75 @@ public class ProductController
     #region Report Product
     public static void Report()
     {
+        Console.Clear();
         var _service = new ProductService();
         var results = _service.Report();
-        Console.WriteLine(results.ToString());
+        if (!results.IsSuccess)
+        {
+            Menu.PrintMessage($"Message: {results.Message}");
+            return;
+        }
+
+        // Presentation
         foreach (var item in results.Value)
         {
-            Console.WriteLine(item.Report());
+            Console.Write(item.Report());
         }
-        Console.ReadKey();
+        Menu.PresEnterToBack();
     }
     #endregion
 
     #region ProductService
-    private static void GetAll(ProductService _service)
+    private static void GetAll()
     {
+        var _service = new ProductService();
         var results = _service.GetAll();
-        Console.WriteLine(results.ToString());
         foreach (var item in results.Value)
         {
-            Console.WriteLine(item.ToString());
+            Console.Write(item.ToString());
         }
     }
 
-    private static void SearchByName(ProductService _service)
+    private static void SearchByName()
     {
+        var _service = new ProductService();
         Console.Write("Name: ");
         var name = Console.ReadLine();
         var result = _service.SearchByName(name);
-        Console.Write(result.ToString() + result.Value.ToString());
+        if (!result.IsSuccess)
+        {
+            Menu.PrintMessage($"Message: {result.Message}");
+            return;
+        }
+        Menu.PrintMessage(result.ToString() + result.Value.ToString());
     }
 
-    private static void Update(ProductService _service)
+    private static void Update()
     {
+        var _service = new ProductService();
         Console.Write("Id: ");
         var id = int.Parse(Console.ReadLine());
         var newProduct = ReadProduct();
         var result = _service.Update(id, newProduct);
-        Console.Write($"Message: {result.Message}");
+        Menu.PrintMessage($"Message: {result.Message}");
     }
 
-    private static void Create(ProductService _service)
+    private static void Create()
     {
+        var _service = new ProductService();
         var product = ReadProduct();
         var result = _service.Create(product);
-        Console.Write($"Message: {result.Message}");
+        Menu.PrintMessage($"Message: {result.Message}");
 
     }
 
-    private static void Remove(ProductService _service)
+    private static void Remove()
     {
+        var _service = new ProductService();
         Console.Write("Id: ");
         var id = int.Parse(Console.ReadLine());
         var result = _service.Remove(id);
-        Console.Write($"Message: {result.Message}");
+        Menu.PrintMessage($"Message: {result.Message}");
     }
     #endregion
 
@@ -118,8 +136,8 @@ public class ProductController
         var result = _service.AddInventory(id, inventory);
 
         // print result
-        Console.Write($"Message: {result.Message}");
-        Thread.Sleep(2000);
+        Menu.PrintMessage($"Message: {result.Message}");
+        Menu.PresEnterToBack();
 
     }
 
@@ -138,8 +156,8 @@ public class ProductController
         var result = _service.LowInventory(id, inventory);
 
         // print result
-        Console.Write($"Message: {result.Message}");
-        Thread.Sleep(2000);
+        Menu.PrintMessage($"Message: {result.Message}");
+        Menu.PresEnterToBack();
     }
     #endregion
 
